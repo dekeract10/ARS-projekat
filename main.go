@@ -18,8 +18,8 @@ func main() {
 	router := mux.NewRouter()
 	router.StrictSlash(true)
 
-	server := postServer{
-		data: map[string]*RequestPost{},
+	server := service{
+		data: map[string][]*Config{},
 	}
 	router.HandleFunc("/post/", server.createPostHandler).Methods("POST")
 	router.HandleFunc("/posts/", server.getAllHandler).Methods("GET")

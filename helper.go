@@ -2,20 +2,20 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/google/uuid"
 	"io"
 	"net/http"
-	"github.com/google/uuid"
 )
 
-func decodeBody(r io.Reader) (*RequestPost, error) {
+func decodeBody(r io.Reader) ([]*Config, error) {
 	dec := json.NewDecoder(r)
 	dec.DisallowUnknownFields()
 
-	var rt RequestPost
-	if err := dec.Decode(&rt); err != nil {
+	var config []*Config
+	if err := dec.Decode(&config); err != nil {
 		return nil, err
 	}
-	return &rt, nil
+	return config, nil
 }
 
 func renderJSON(w http.ResponseWriter, v interface{}) {
