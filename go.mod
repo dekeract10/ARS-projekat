@@ -1,6 +1,6 @@
 module github.com/dekeract10/ARS-projekat
 
-go 1.18
+go 1.16
 
 require (
 	github.com/google/uuid v1.3.0
