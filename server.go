@@ -1,17 +1,17 @@
 package main
 
 import (
-	"net/http"
 	"errors"
-	"mime"
 	"github.com/gorilla/mux"
+	"mime"
+	"net/http"
 )
 
-type postServer struct {
-	data map[string]*RequestPost // izigrava bazu podataka
+type service struct {
+	data map[string][]*Config // izigrava bazu podataka
 }
 
-func (ts *postServer) createPostHandler(w http.ResponseWriter, req *http.Request) {
+func (ts *service) createPostHandler(w http.ResponseWriter, req *http.Request) {
 	contentType := req.Header.Get("Content-Type")
 	mediatype, _, err := mime.ParseMediaType(contentType)
 	if err != nil {
@@ -32,12 +32,11 @@ func (ts *postServer) createPostHandler(w http.ResponseWriter, req *http.Request
 	}
 
 	id := createId()
-	rt.Id = id
 	ts.data[id] = rt
 	renderJSON(w, rt)
 }
 
-func (ts *postServer) getAllHandler(w http.ResponseWriter, req *http.Request) {
+func (ts *service) getAllHandler(w http.ResponseWriter, req *http.Request) {
 	allTasks := []*RequestPost{}
 	for _, v := range ts.data {
 		allTasks = append(allTasks, v)
@@ -46,7 +45,7 @@ func (ts *postServer) getAllHandler(w http.ResponseWriter, req *http.Request) {
 	renderJSON(w, allTasks)
 }
 
-func (ts *postServer) getPostHandler(w http.ResponseWriter, req *http.Request) {
+func (ts *service) getPostHandler(w http.ResponseWriter, req *http.Request) {
 	id := mux.Vars(req)["id"]
 	task, ok := ts.data[id]
 	if !ok {
@@ -57,7 +56,7 @@ func (ts *postServer) getPostHandler(w http.ResponseWriter, req *http.Request) {
 	renderJSON(w, task)
 }
 
-func (ts *postServer) delPostHandler(w http.ResponseWriter, req *http.Request) {
+func (ts *service) delPostHandler(w http.ResponseWriter, req *http.Request) {
 	id := mux.Vars(req)["id"]
 	if v, ok := ts.data[id]; ok {
 		delete(ts.data, id)
