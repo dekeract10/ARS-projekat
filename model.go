@@ -1,8 +1,9 @@
 package main
 
-type RequestPost struct {
-	Id string `json:"id"`
-	Title string  `json:"title"`
-	Text  string  `json:"text"`
-	Tags  []string   `json:"tags"`
+type Service struct {
+	Data map[string]*Config `json:"data"`
+}
+
+type Config struct {
+	Entries map[string]string `json:"entries"`
 }
