@@ -78,13 +78,24 @@ func (ts *Service) getGroupHandler(w http.ResponseWriter, req *http.Request) {
 	renderJSON(w, task)
 }
 
-func (ts *Service) delConfigHandler(w http.ResponseWriter, req *http.Request) {
-	id := mux.Vars(req)["id"]
-	if v, ok := ts.data[id]; ok || len(v) > 1 {
+func (ts *Service) delConfigHandler(writer http.ResponseWriter, request *http.Request) {
+	id := mux.Vars(request)["id"]
+	if value, ok := ts.data[id]; ok && len(value) == 1 {
 		delete(ts.data, id)
-		renderJSON(w, v)
+		renderJSON(writer, value)
 	} else {
 		err := errors.New("key not found")
-		http.Error(w, err.Error(), http.StatusNotFound)
+		http.Error(writer, err.Error(), http.StatusNotFound)
+	}
+}
+
+func (ts *Service) delGroupHandler(writer http.ResponseWriter, request *http.Request) {
+	id := mux.Vars(request)["id"]
+	if value, ok := ts.data[id]; ok && len(value) > 1 {
+		delete(ts.data, id)
+		renderJSON(writer, value)
+	} else {
+		err := errors.New("key not found")
+		http.Error(writer, err.Error(), http.StatusNotFound)
 	}
 }
