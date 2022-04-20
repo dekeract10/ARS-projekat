@@ -1,27 +1,61 @@
-get posts
+get all configs
 
-GET localhost:8000/posts/
-
------------------------------
-
-get single post
-
-GET localhost:8000/post/e10cf990-1254-4df8-b643-c6ec83b762e0/
+GET localhost:8000/configs/
 
 -----------------------------
 
-create post
+get all configs
+
+GET localhost:8000/gropus/
+
+-----------------------------
+
+get single config
+
+GET localhost:8000/config/id/
+
+-----------------------------
+
+get single config
+
+GET localhost:8000/group/id/
+
+-----------------------------
+
+create config
 
 POST localhost:8000/post/
 
-{
-    "title": "test",
-    "text":"hello world",
-    "tags":["hello", "world", "124"]
-}
+prvi slucaj:
 
------------------------------
+[{
+    "entries":{
+      "param1": "value1",
+       "param2": "value2"
+    }
+}]
 
-delete post
+drugi slucaj:
 
-DELETE localhost:8000/post/e10cf990-1254-4df8-b643-c6ec83b762e0/
+[
+   {
+      "entries":{
+         "param1":"value1",
+         "param2":"value2"
+      }
+   },
+   {
+      "entries":{
+         "param1":"value1"
+      }
+   },
+   {
+      "entries":{
+         "param1":"value1",
+         "param2":"value2",
+         "param3":"value3",
+         "param4":"value4"
+      }
+   }
+]
+
