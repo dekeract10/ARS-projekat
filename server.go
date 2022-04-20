@@ -7,11 +7,11 @@ import (
 	"net/http"
 )
 
-type service struct {
+type Service struct {
 	data map[string][]*Config // izigrava bazu podataka
 }
 
-func (ts *service) createPostHandler(w http.ResponseWriter, req *http.Request) {
+func (ts *Service) createConfigHandler(w http.ResponseWriter, req *http.Request) {
 	contentType := req.Header.Get("Content-Type")
 	mediatype, _, err := mime.ParseMediaType(contentType)
 	if err != nil {
@@ -33,11 +33,11 @@ func (ts *service) createPostHandler(w http.ResponseWriter, req *http.Request) {
 
 	id := createId()
 	ts.data[id] = rt
-	renderJSON(w, rt)
+	w.Write([]byte(id))
 }
 
-func (ts *service) getAllHandler(w http.ResponseWriter, req *http.Request) {
-	allTasks := []*RequestPost{}
+func (ts *Service) getAllHandler(w http.ResponseWriter, req *http.Request) {
+	allTasks := [][]*Config{}
 	for _, v := range ts.data {
 		allTasks = append(allTasks, v)
 	}
@@ -45,10 +45,10 @@ func (ts *service) getAllHandler(w http.ResponseWriter, req *http.Request) {
 	renderJSON(w, allTasks)
 }
 
-func (ts *service) getPostHandler(w http.ResponseWriter, req *http.Request) {
+func (ts *Service) getConfigHandler(w http.ResponseWriter, req *http.Request) {
 	id := mux.Vars(req)["id"]
 	task, ok := ts.data[id]
-	if !ok {
+	if !ok || len(task) > 1 {
 		err := errors.New("key not found")
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -56,9 +56,9 @@ func (ts *service) getPostHandler(w http.ResponseWriter, req *http.Request) {
 	renderJSON(w, task)
 }
 
-func (ts *service) delPostHandler(w http.ResponseWriter, req *http.Request) {
+func (ts *Service) delConfigHandler(w http.ResponseWriter, req *http.Request) {
 	id := mux.Vars(req)["id"]
-	if v, ok := ts.data[id]; ok {
+	if v, ok := ts.data[id]; ok || len(v) > 1 {
 		delete(ts.data, id)
 		renderJSON(w, v)
 	} else {
