@@ -26,6 +26,7 @@ func main() {
 	router.HandleFunc("/configs/", server.getAllConfigsHandler).Methods("GET")
 	router.HandleFunc("/groups/", server.getAllGroupssHandler).Methods("GET")
 	router.HandleFunc("/group/{id}", server.getGroupHandler).Methods("GET")
+	router.HandleFunc("/group/{id}", server.putConfigHandler).Methods("PUT")
 	router.HandleFunc("/config/{id}/", server.getConfigHandler).Methods("GET")
 	router.HandleFunc("/config/{id}/", server.delConfigHandler).Methods("DELETE")
 

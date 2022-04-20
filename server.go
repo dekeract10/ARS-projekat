@@ -78,6 +78,25 @@ func (ts *Service) getGroupHandler(w http.ResponseWriter, req *http.Request) {
 	renderJSON(w, task)
 }
 
+func (ts *Service) putConfigHandler(w http.ResponseWriter, req *http.Request) {
+	id := mux.Vars(req)["id"]
+	task, ok := ts.data[id]
+	if !ok {
+		err := errors.New("key not found")
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+	rt, err := decodeBody(req.Body)
+	if len(rt) > 1 {
+		err := errors.New("Invalid JSON format!")
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if err == nil {
+		ts.data[id] = append(task, rt[0])
+	}
+}
+
 func (ts *Service) delConfigHandler(w http.ResponseWriter, req *http.Request) {
 	id := mux.Vars(req)["id"]
 	if v, ok := ts.data[id]; ok || len(v) > 1 {

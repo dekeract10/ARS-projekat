@@ -58,4 +58,16 @@ drugi slucaj:
       }
    }
 ]
+-----------------------------
+add config to a group
+
+PUT localhost:8000/group/id/
+[
+   {
+      "entries":{
+         " test":"test1",
+         "test2":"test2"
+      }
+   }
+]
 
