@@ -123,6 +123,6 @@ func (ts *Service) hangHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	log.Printf("started hanging at %s", time.Now().Format("2006-01-02 15:04:05"))
+	log.Printf("started hanging for %d seconds", intSeconds)
 	time.Sleep(time.Second * time.Duration(intSeconds))
 }
