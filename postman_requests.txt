@@ -26,7 +26,6 @@ create config
 
 POST localhost:8000/config/
 
-prvi slucaj:
 
 [{
     "entries":{
@@ -34,8 +33,11 @@ prvi slucaj:
        "param2": "value2"
     }
 }]
+-----------------------------
 
-drugi slucaj:
+create group
+
+POST localhost:8000/group/
 
 [
    {
@@ -61,7 +63,7 @@ drugi slucaj:
 -----------------------------
 add config to a group
 
-POST localhost:8000/group/configs/id/
+POST localhost:8000/group/{id}/configs
 [
    {
       "entries":{
@@ -70,4 +72,11 @@ POST localhost:8000/group/configs/id/
       }
    }
 ]
+-----------------------------
 
+delete config
+DELETE localhost:8000/config/{id}/
+
+-----------------------------
+delete gruop
+DELETE localhost:8000/group/{id}/
