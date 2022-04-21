@@ -81,17 +81,20 @@ func (ts *Service) getGroupHandler(w http.ResponseWriter, req *http.Request) {
 func (ts *Service) putConfigHandler(w http.ResponseWriter, req *http.Request) {
 	id := mux.Vars(req)["id"]
 	task, ok := ts.data[id]
-	if !ok {
+
+	if !ok || len(task) == 1 {
 		err := errors.New("key not found")
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
+
 	rt, err := decodeBody(req.Body)
 	if len(rt) > 1 {
-		err := errors.New("Invalid JSON format!")
+		err := errors.New("Recived invalid JSON format! (confg length > 1)")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
 	if err == nil {
 		ts.data[id] = append(task, rt[0])
 	}
