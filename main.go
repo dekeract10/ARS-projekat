@@ -2,13 +2,14 @@ package main
 
 import (
 	"context"
-	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/gorilla/mux"
 )
 
 func main() {
@@ -22,6 +23,7 @@ func main() {
 		data: map[string][]*Config{},
 	}
 
+	router.HandleFunc("/hang/{seconds}/", server.hangHandler).Methods("GET")
 	router.HandleFunc("/config/", server.createConfigHandler).Methods("POST")
 	router.HandleFunc("/configs/", server.getAllConfigsHandler).Methods("GET")
 	router.HandleFunc("/groups/", server.getAllGroupssHandler).Methods("GET")

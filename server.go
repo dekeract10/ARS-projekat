@@ -2,9 +2,13 @@ package main
 
 import (
 	"errors"
-	"github.com/gorilla/mux"
+	"log"
 	"mime"
 	"net/http"
+	"strconv"
+	"time"
+
+	"github.com/gorilla/mux"
 )
 
 type Service struct {
@@ -109,4 +113,16 @@ func (ts *Service) delConfigHandler(w http.ResponseWriter, req *http.Request) {
 		err := errors.New("key not found")
 		http.Error(w, err.Error(), http.StatusNotFound)
 	}
+}
+
+func (ts *Service) hangHandler(w http.ResponseWriter, req *http.Request) {
+	seconds := mux.Vars(req)["seconds"]
+	intSeconds, err := strconv.Atoi(seconds)
+	if err != nil {
+		http.Error(w, "could not convert to seconds", http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("started hanging at %s", time.Now().Format("2006-01-02 15:04:05"))
+	time.Sleep(time.Second * time.Duration(intSeconds))
 }
