@@ -18,13 +18,19 @@ func main() {
 	router := mux.NewRouter()
 	router.StrictSlash(true)
 
-	server := service{
+	server := Service{
 		data: map[string][]*Config{},
 	}
-	router.HandleFunc("/post/", server.createPostHandler).Methods("POST")
-	router.HandleFunc("/posts/", server.getAllHandler).Methods("GET")
-	router.HandleFunc("/post/{id}/", server.getPostHandler).Methods("GET")
-	router.HandleFunc("/post/{id}/", server.delPostHandler).Methods("DELETE")
+
+	router.HandleFunc("/config/", server.createConfigHandler).Methods("POST")
+	router.HandleFunc("/group/", server.createGroupHandler).Methods("POST")
+	router.HandleFunc("/configs/", server.getAllConfigsHandler).Methods("GET")
+	router.HandleFunc("/groups/", server.getAllGroupsHandler).Methods("GET")
+	router.HandleFunc("/group/{id}", server.getGroupHandler).Methods("GET")
+	router.HandleFunc("/config/{id}", server.getConfigHandler).Methods("GET")
+	router.HandleFunc("/config/{id}/", server.delConfigHandler).Methods("DELETE")
+	router.HandleFunc("/group/{id}/", server.delGroupHandler).Methods("DELETE")
+	router.HandleFunc("/group/{id}/configs", server.putConfigHandler).Methods("POST")
 
 	// start server
 	srv := &http.Server{Addr: "0.0.0.0:8000", Handler: router}
