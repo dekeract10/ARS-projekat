@@ -8,10 +8,13 @@ import (
 )
 
 type Service struct {
-	data map[string][]*Config // izigrava bazu podataka
+	versions map[string]map[string][]*Config
+	// data map[string][]*Config // izigrava bazu podataka
 }
 
 func (ts *Service) createConfigHandler(w http.ResponseWriter, req *http.Request) {
+	ver := mux.Vars(req)["ver"]
+
 	contentType := req.Header.Get("Content-Type")
 	mediatype, _, err := mime.ParseMediaType(contentType)
 	if err != nil {
@@ -31,12 +34,19 @@ func (ts *Service) createConfigHandler(w http.ResponseWriter, req *http.Request)
 		return
 	}
 
+	// make version if it doesn't exist
+	if _, ok := ts.versions[ver]; !ok {
+		ts.versions[ver] = make(map[string][]*Config)
+	}
+
 	id := createId()
-	ts.data[id] = rt
+	ts.versions[ver][id] = rt
 	w.Write([]byte(id))
 }
 
 func (ts *Service) createGroupHandler(w http.ResponseWriter, req *http.Request) {
+	ver := mux.Vars(req)["ver"]
+
 	contentType := req.Header.Get("Content-Type")
 	mediatype, _, err := mime.ParseMediaType(contentType)
 	if err != nil {
@@ -55,15 +65,20 @@ func (ts *Service) createGroupHandler(w http.ResponseWriter, req *http.Request) 
 		http.Error(w, "Invalid JSON format (config len = 1)", http.StatusBadRequest)
 		return
 	}
+	// make version if it doesn't exist
+	if _, ok := ts.versions[ver]; !ok {
+		ts.versions[ver] = make(map[string][]*Config)
+	}
 
 	id := createId()
-	ts.data[id] = rt
+	ts.versions[ver][id] = rt
 	w.Write([]byte(id))
 }
 
 func (ts *Service) getAllConfigsHandler(w http.ResponseWriter, req *http.Request) {
+	ver := mux.Vars(req)["ver"]
 	allTasks := [][]*Config{}
-	for _, v := range ts.data {
+	for _, v := range ts.versions[ver] {
 		if len(v) == 1 {
 			allTasks = append(allTasks, v)
 		}
@@ -72,8 +87,9 @@ func (ts *Service) getAllConfigsHandler(w http.ResponseWriter, req *http.Request
 }
 
 func (ts *Service) getAllGroupsHandler(w http.ResponseWriter, req *http.Request) {
+	ver := mux.Vars(req)["ver"]
 	allTasks := [][]*Config{}
-	for _, v := range ts.data {
+	for _, v := range ts.versions[ver] {
 		if len(v) > 1 {
 			allTasks = append(allTasks, v)
 		}
@@ -82,8 +98,9 @@ func (ts *Service) getAllGroupsHandler(w http.ResponseWriter, req *http.Request)
 }
 
 func (ts *Service) getConfigHandler(w http.ResponseWriter, req *http.Request) {
+	ver := mux.Vars(req)["ver"]
 	id := mux.Vars(req)["id"]
-	task, ok := ts.data[id]
+	task, ok := ts.versions[ver][id]
 	if !ok || len(task) > 1 {
 		err := errors.New("key not found")
 		http.Error(w, err.Error(), http.StatusNotFound)
@@ -94,7 +111,8 @@ func (ts *Service) getConfigHandler(w http.ResponseWriter, req *http.Request) {
 
 func (ts *Service) getGroupHandler(w http.ResponseWriter, req *http.Request) {
 	id := mux.Vars(req)["id"]
-	task, ok := ts.data[id]
+	ver := mux.Vars(req)["ver"]
+	task, ok := ts.versions[ver][id]
 	if !ok || len(task) == 1 {
 		err := errors.New("key not found")
 		http.Error(w, err.Error(), http.StatusNotFound)
@@ -105,7 +123,8 @@ func (ts *Service) getGroupHandler(w http.ResponseWriter, req *http.Request) {
 
 func (ts *Service) putConfigHandler(w http.ResponseWriter, req *http.Request) {
 	id := mux.Vars(req)["id"]
-	task, ok := ts.data[id]
+	ver := mux.Vars(req)["ver"]
+	task, ok := ts.versions[ver][id]
 
 	if !ok || len(task) == 1 {
 		err := errors.New("key not found")
@@ -121,14 +140,15 @@ func (ts *Service) putConfigHandler(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if err == nil {
-		ts.data[id] = append(task, rt[0])
+		ts.versions[ver][id] = append(task, rt[0])
 	}
 }
 
 func (ts *Service) delConfigHandler(writer http.ResponseWriter, request *http.Request) {
 	id := mux.Vars(request)["id"]
-	if value, ok := ts.data[id]; ok && len(value) == 1 {
-		delete(ts.data, id)
+	ver := mux.Vars(request)["ver"]
+	if value, ok := ts.versions[ver][id]; ok && len(value) == 1 {
+		delete(ts.versions[ver], id)
 		renderJSON(writer, value)
 	} else {
 		err := errors.New("key not found")
@@ -138,8 +158,9 @@ func (ts *Service) delConfigHandler(writer http.ResponseWriter, request *http.Re
 
 func (ts *Service) delGroupHandler(writer http.ResponseWriter, request *http.Request) {
 	id := mux.Vars(request)["id"]
-	if value, ok := ts.data[id]; ok && len(value) > 1 {
-		delete(ts.data, id)
+	ver := mux.Vars(request)["ver"]
+	if value, ok := ts.versions[ver][id]; ok && len(value) > 1 {
+		delete(ts.versions[ver], id)
 		renderJSON(writer, value)
 	} else {
 		err := errors.New("key not found")
