@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	cs "github.com/dekeract10/ARS-projekat/configstore"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
@@ -18,19 +19,28 @@ func main() {
 	router := mux.NewRouter()
 	router.StrictSlash(true)
 
-	server := Service{
-		versions: make(map[string]map[string][]*Config),
+	store, err := cs.New()
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	router.HandleFunc("/config/{ver}/", server.createConfigHandler).Methods("POST")
-	router.HandleFunc("/config/{id}/", server.getAllConfigsHandler).Methods("GET")
-	router.HandleFunc("/config/{id}/{ver}/", server.getConfigHandler).Methods("GET")
-	router.HandleFunc("/config/{id}/{ver}/", server.delConfigHandler).Methods("DELETE")
-	router.HandleFunc("/group/{ver}/", server.createGroupHandler).Methods("POST")
-	router.HandleFunc("/group/{id}/", server.getAllGroupsHandler).Methods("GET")
-	router.HandleFunc("/group/{id}/{ver}/", server.getGroupHandler).Methods("GET")
-	router.HandleFunc("/group/{id}/{ver}/", server.delGroupHandler).Methods("DELETE")
-	router.HandleFunc("/group/{id}/configs/{ver}/", server.putConfigHandler).Methods("POST")
+	server := Service{
+		store: store,
+	}
+
+	router.HandleFunc("/config/", server.createConfigHandler).Methods("POST")
+	// router.HandleFunc("/config/{id}/", server.getConfigVersions).Methods("GET")
+	// router.HandleFunc("/config/{id}/", server.createConfigHandler).Methods("PUT")
+	router.HandleFunc("/config/{id}/{ver}", server.getConfigHandler).Methods("GET")
+	// router.HandleFunc("/config/{id}/{ver}", server.getConfigHandler).Methods("DELETE")
+	// router.HandleFunc("/config/{id}/", server.getAllConfigsHandler).Methods("GET")
+	// router.HandleFunc("/config/{id}/{ver}/", server.getConfigHandler).Methods("GET")
+	// router.HandleFunc("/config/{id}/{ver}/", server.delConfigHandler).Methods("DELETE")
+	// router.HandleFunc("/group/{ver}/", server.createGroupHandler).Methods("POST")
+	// router.HandleFunc("/group/{id}/", server.getAllGroupsHandler).Methods("GET")
+	// router.HandleFunc("/group/{id}/{ver}/", server.getGroupHandler).Methods("GET")
+	// router.HandleFunc("/group/{id}/{ver}/", server.delGroupHandler).Methods("DELETE")
+	// router.HandleFunc("/group/{id}/configs/{ver}/", server.putConfigHandler).Methods("POST")
 
 	// start server
 	srv := &http.Server{Addr: "0.0.0.0:8000", Handler: router}
