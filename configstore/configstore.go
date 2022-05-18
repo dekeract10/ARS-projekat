@@ -2,6 +2,7 @@ package configstore
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 
@@ -33,8 +34,8 @@ func (cs *ConfigStore) FindConf(id string, ver string) (*Config, error) {
 	key := constructConfigKey(id, ver)
 	data, _, err := kv.Get(key, nil)
 
-	if err != nil {
-		return nil, err
+	if err != nil || data == nil {
+		return nil, errors.New("That item does not exist!")
 	}
 
 	config := &Config{}
@@ -91,11 +92,35 @@ func (cs *ConfigStore) CreateConfig(config *Config) (*Config, error) {
 		return nil, err
 	}
 
-	p := &api.KVPair{Key: sid, Value: data}
-	_, err = kv.Put(p, nil)
+	c := &api.KVPair{Key: sid, Value: data}
+	_, err = kv.Put(c, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	return config, nil
+}
+
+func (cs *ConfigStore) UpdateConfigVersion(config *Config) (*Config, error) {
+	kv := cs.cli.KV()
+
+	data, err := json.Marshal(config)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = cs.FindConf(config.ID, config.Version)
+
+	//Does exist
+	if err == nil {
+		return nil, errors.New("Given config version already exists! ")
+	}
+
+	c := &api.KVPair{Key: constructConfigKey(config.ID, config.Version), Value: data}
+	_, err = kv.Put(c, nil)
+	if err != nil {
+		return nil, err
+	}
+	return config, nil
+
 }

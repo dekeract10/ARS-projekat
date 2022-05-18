@@ -26,7 +26,7 @@ func constructConfigKey(id string, ver string) string {
 }
 
 func constructConfigIdKey(id string) string {
-	return fmt.Sprint(configId, id)
+	return fmt.Sprintf(configId, id)
 }
 
 func generateGroupKey(ver string) (string, string) {
