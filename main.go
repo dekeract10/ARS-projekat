@@ -22,15 +22,15 @@ func main() {
 		versions: make(map[string]map[string][]*Config),
 	}
 
-	router.HandleFunc("/{ver}/config/", server.createConfigHandler).Methods("POST")
-	router.HandleFunc("/{ver}/group/", server.createGroupHandler).Methods("POST")
-	router.HandleFunc("/{ver}/configs/", server.getAllConfigsHandler).Methods("GET")
-	router.HandleFunc("/{ver}/groups/", server.getAllGroupsHandler).Methods("GET")
-	router.HandleFunc("/{ver}/group/{id}", server.getGroupHandler).Methods("GET")
-	router.HandleFunc("/{ver}/config/{id}", server.getConfigHandler).Methods("GET")
-	router.HandleFunc("/{ver}/config/{id}/", server.delConfigHandler).Methods("DELETE")
-	router.HandleFunc("/{ver}/group/{id}/", server.delGroupHandler).Methods("DELETE")
-	router.HandleFunc("/{ver}/group/{id}/configs", server.putConfigHandler).Methods("POST")
+	router.HandleFunc("/config/{ver}/", server.createConfigHandler).Methods("POST")
+	router.HandleFunc("/config/{id}/", server.getAllConfigsHandler).Methods("GET")
+	router.HandleFunc("/config/{id}/{ver}/", server.getConfigHandler).Methods("GET")
+	router.HandleFunc("/config/{id}/{ver}/", server.delConfigHandler).Methods("DELETE")
+	router.HandleFunc("/group/{ver}/", server.createGroupHandler).Methods("POST")
+	router.HandleFunc("/group/{id}/", server.getAllGroupsHandler).Methods("GET")
+	router.HandleFunc("/group/{id}/{ver}/", server.getGroupHandler).Methods("GET")
+	router.HandleFunc("/group/{id}/{ver}/", server.delGroupHandler).Methods("DELETE")
+	router.HandleFunc("/group/{id}/configs/{ver}/", server.putConfigHandler).Methods("POST")
 
 	// start server
 	srv := &http.Server{Addr: "0.0.0.0:8000", Handler: router}

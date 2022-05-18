@@ -2,14 +2,35 @@ package main
 
 import (
 	"errors"
-	"github.com/gorilla/mux"
+	"fmt"
 	"mime"
 	"net/http"
+	"os"
+
+	"github.com/gorilla/mux"
+	"github.com/hashicorp/consul/api"
 )
 
 type Service struct {
-	versions map[string]map[string][]*Config
+	// versions map[string]map[string][]*Config
+	cli *api.Client
 	// data map[string][]*Config // izigrava bazu podataka
+}
+
+func New() (*Service, error) {
+	db := os.Getenv("DB")
+	dbport := os.Getenv("DBPORT")
+
+	config := api.DefaultConfig()
+	config.Address = fmt.Sprintf("%s:%s", db, dbport)
+	client, err := api.NewClient(config)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Service{
+		cli: client,
+	}, nil
 }
 
 func (ts *Service) createConfigHandler(w http.ResponseWriter, req *http.Request) {
