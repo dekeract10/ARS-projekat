@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	cs "github.com/dekeract10/ARS-projekat/configstore"
 	"github.com/gorilla/mux"
 	"mime"
@@ -92,6 +93,27 @@ func (ts *Service) getConfigGroupsHandler(w http.ResponseWriter, req *http.Reque
 		return
 	}
 	renderJSON(w, task)
+}
+
+func (ts *Service) delConfigHandler(w http.ResponseWriter, req *http.Request) {
+
+	id := mux.Vars(req)["id"]
+
+	ver := mux.Vars(req)["ver"]
+
+	msg, err := ts.store.DeleteConfig(id, ver)
+
+	fmt.Println(msg, err)
+
+	if err != nil {
+
+		http.Error(w, err.Error(), http.StatusBadRequest)
+
+		return
+	}
+
+	renderJSON(w, msg)
+
 }
 
 // func (ts *Service) createGroupHandler(w http.ResponseWriter, req *http.Request) {

@@ -54,7 +54,7 @@ func (cs *ConfigStore) DeleteConfig(id, ver string) (map[string]string, error) {
 		return nil, err
 	}
 
-	return map[string]string{"Deleted": id}, nil
+	return map[string]string{"Deleted": id + ver}, nil
 }
 
 func (cs *ConfigStore) FindConfVersions(id string) ([]*Config, error) {
