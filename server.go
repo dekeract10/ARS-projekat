@@ -101,7 +101,7 @@ func (ts *Service) delConfigHandler(w http.ResponseWriter, req *http.Request) {
 
 	msg, err := ts.store.DeleteConfig(id, ver)
 
-	fmt.Println(msg, err)
+	fmt.Println("CONFIG ", msg, err)
 
 	if err != nil {
 
@@ -193,6 +193,26 @@ func (ts *Service) putNewGroupVersion(w http.ResponseWriter, req *http.Request) 
 	}
 
 	w.Write([]byte(config.ID))
+}
+
+func (ts *Service) delGroupHandler(w http.ResponseWriter, req *http.Request) {
+
+	id := mux.Vars(req)["id"]
+
+	ver := mux.Vars(req)["ver"]
+
+	msg, err := ts.store.DeleteConfigGroup(id, ver)
+
+	fmt.Println("GROUP ", msg, err)
+
+	if err != nil {
+
+		http.Error(w, err.Error(), http.StatusBadRequest)
+
+		return
+	}
+
+	renderJSON(w, msg)
 }
 
 // func (ts *Service) getAllConfigsHandler(w http.ResponseWriter, req *http.Request) {
