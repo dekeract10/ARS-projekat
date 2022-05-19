@@ -37,3 +37,7 @@ func generateGroupKey(ver string) (string, string) {
 func constructGroupKey(id string, ver string) string {
 	return fmt.Sprintf(groupVer, id, ver)
 }
+
+func constructGroupIdKey(id string) string {
+	return fmt.Sprintf(groupId, id)
+}

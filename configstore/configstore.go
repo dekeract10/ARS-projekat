@@ -66,7 +66,7 @@ func (cs *ConfigStore) FindConfVersions(id string) ([]*Config, error) {
 		return nil, err
 	}
 
-	configs := []*Config{}
+	var configs []*Config
 
 	for _, pair := range data {
 		config := &Config{}
@@ -122,5 +122,91 @@ func (cs *ConfigStore) UpdateConfigVersion(config *Config) (*Config, error) {
 		return nil, err
 	}
 	return config, nil
+
+}
+
+func (cs *ConfigStore) CreateGroup(group *Group) (*Group, error) {
+	kv := cs.cli.KV()
+
+	sid, rid := generateGroupKey(group.Version)
+	group.ID = rid
+
+	data, err := json.Marshal(group)
+	if err != nil {
+		return nil, err
+	}
+
+	g := &api.KVPair{Key: sid, Value: data}
+	_, err = kv.Put(g, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return group, nil
+}
+
+func (cs *ConfigStore) FindGroup(id string, ver string) (*Group, error) {
+	kv := cs.cli.KV()
+	key := constructGroupKey(id, ver)
+	data, _, err := kv.Get(key, nil)
+
+	if err != nil || data == nil {
+		return nil, errors.New("That item does not exist!")
+	}
+
+	group := &Group{}
+	err = json.Unmarshal(data.Value, group)
+	if err != nil {
+		return nil, err
+	}
+
+	return group, nil
+}
+
+func (cs *ConfigStore) UpdateGroupVersion(group *Group) (*Group, error) {
+	kv := cs.cli.KV()
+
+	data, err := json.Marshal(group)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = cs.FindGroup(group.ID, group.Version)
+
+	//Does exist
+	if err == nil {
+		return nil, errors.New("Given group version already exists! ")
+	}
+
+	c := &api.KVPair{Key: constructGroupKey(group.ID, group.Version), Value: data}
+	_, err = kv.Put(c, nil)
+	if err != nil {
+		return nil, err
+	}
+	return group, nil
+
+}
+
+func (cs *ConfigStore) FindGroupVersions(id string) ([]*Group, error) {
+	kv := cs.cli.KV()
+
+	key := constructGroupIdKey(id)
+	data, _, err := kv.List(key, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var groups []*Group
+
+	for _, pair := range data {
+		group := &Group{}
+		err := json.Unmarshal(pair.Value, group)
+		if err != nil {
+			return nil, err
+		}
+
+		groups = append(groups, group)
+	}
+	return groups, nil
 
 }

@@ -19,6 +19,17 @@ func decodeConfigBody(r io.Reader) (*cs.Config, error) {
 	return config, nil
 }
 
+func decodeGroupBody(r io.Reader) (*cs.Group, error) {
+	dec := json.NewDecoder(r)
+	dec.DisallowUnknownFields()
+
+	var group *cs.Group
+	if err := dec.Decode(&group); err != nil {
+		return nil, err
+	}
+	return group, nil
+}
+
 func renderJSON(w http.ResponseWriter, v interface{}) {
 	js, err := json.Marshal(v)
 	if err != nil {
