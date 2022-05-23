@@ -2,6 +2,8 @@ package configstore
 
 import (
 	"fmt"
+	"sort"
+
 	"github.com/google/uuid"
 )
 
@@ -10,10 +12,11 @@ const (
 	configId   = "config/%s"
 	config     = "config/%s/%s"
 
-	allGroups = "group"
-	groupId   = "group/%s"
-	groupVer  = "group/%s/%s"
-	group     = "group/%s/%s/%s"
+	allGroups      = "group"
+	groupId        = "group/%s"
+	groupVer       = "group/%s/%s"
+	group          = "group/%s/%s/%s"
+	groupWithLabel = "group/%s/%s/%s/%d"
 )
 
 func generateConfigKey(ver string) (string, string) {
@@ -40,4 +43,21 @@ func constructGroupKey(id string, ver string) string {
 
 func constructGroupIdKey(id string) string {
 	return fmt.Sprintf(groupId, id)
+}
+
+func constructGroupLabel(id, ver string, index int, config map[string]string) string {
+	keys := make([]string, 0, len(config))
+	for k := range config {
+		keys = append(keys, k)
+	}
+
+	sort.Strings(keys)
+
+	var kvpairs string
+	for k := range keys {
+
+		kvpairs = kvpairs + fmt.Sprintf("%s=%s", keys[k], config[keys[k]]+"&")
+	}
+	kvpairs = kvpairs[:len(kvpairs)-1]
+	return fmt.Sprintf(groupWithLabel, id, ver, kvpairs, index)
 }

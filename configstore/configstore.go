@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/hashicorp/consul/api"
@@ -131,15 +132,22 @@ func (cs *ConfigStore) CreateGroup(group *Group) (*Group, error) {
 	sid, rid := generateGroupKey(group.Version)
 	group.ID = rid
 
-	data, err := json.Marshal(group)
-	if err != nil {
-		return nil, err
-	}
+	log.Default().Println(sid, kv)
 
-	g := &api.KVPair{Key: sid, Value: data}
-	_, err = kv.Put(g, nil)
-	if err != nil {
-		return nil, err
+	// data, err := json.Marshal(group)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// g := &api.KVPair{Key: sid, Value: data}
+	// _, err = kv.Put(g, nil)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	for i, config := range group.Configs {
+		cid := constructGroupLabel(rid, group.Version, i, config)
+		log.Default().Println(cid)
 	}
 
 	return group, nil

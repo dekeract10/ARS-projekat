@@ -2,10 +2,12 @@ package main
 
 import (
 	"errors"
-	cs "github.com/dekeract10/ARS-projekat/configstore"
-	"github.com/gorilla/mux"
+	"log"
 	"mime"
 	"net/http"
+
+	cs "github.com/dekeract10/ARS-projekat/configstore"
+	"github.com/gorilla/mux"
 )
 
 type Service struct {
@@ -33,6 +35,7 @@ func (ts *Service) createConfigHandler(w http.ResponseWriter, req *http.Request)
 	}
 
 	config, err := ts.store.CreateConfig(rt)
+	log.Default().Println(config)
 	w.Write([]byte(config.ID))
 }
 
