@@ -1,10 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
-	"log"
 	"mime"
 	"net/http"
+	"net/url"
 
 	cs "github.com/dekeract10/ARS-projekat/configstore"
 	"github.com/gorilla/mux"
@@ -35,7 +36,6 @@ func (ts *Service) createConfigHandler(w http.ResponseWriter, req *http.Request)
 	}
 
 	config, err := ts.store.CreateConfig(rt)
-	log.Default().Println(config)
 	w.Write([]byte(config.ID))
 }
 
@@ -123,6 +123,7 @@ func (ts *Service) createGroupHandler(w http.ResponseWriter, req *http.Request) 
 func (ts *Service) getGroupHandler(w http.ResponseWriter, req *http.Request) {
 	ver := mux.Vars(req)["ver"]
 	id := mux.Vars(req)["id"]
+
 	task, ok := ts.store.FindGroup(id, ver)
 	if ok != nil {
 		err := errors.New("key not found")
@@ -132,18 +133,22 @@ func (ts *Service) getGroupHandler(w http.ResponseWriter, req *http.Request) {
 	renderJSON(w, task)
 }
 
-func (ts *Service) getGroupVersionsHandler(w http.ResponseWriter, req *http.Request) {
+func (ts *Service) getConfigFromGroup(w http.ResponseWriter, req *http.Request) {
+	ver := mux.Vars(req)["ver"]
 	id := mux.Vars(req)["id"]
-	task, ok := ts.store.FindGroupVersions(id)
-	if ok != nil {
-		err := errors.New("key not found")
+
+	req.ParseForm()
+	params := url.Values.Encode(req.Form)
+	labels, err := ts.store.FindLabels(id, ver, params)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
-	renderJSON(w, task)
+	renderJSON(w, labels)
 }
 
 func (ts *Service) putNewGroupVersion(w http.ResponseWriter, req *http.Request) {
+
 	contentType := req.Header.Get("Content-Type")
 	mediatype, _, err := mime.ParseMediaType(contentType)
 	id := mux.Vars(req)["id"]
@@ -176,83 +181,43 @@ func (ts *Service) putNewGroupVersion(w http.ResponseWriter, req *http.Request) 
 	w.Write([]byte(config.ID))
 }
 
-// func (ts *Service) getAllConfigsHandler(w http.ResponseWriter, req *http.Request) {
-// 	ver := mux.Vars(req)["ver"]
-// 	allTasks := [][]*Config{}
-// 	for _, v := range ts.versions[ver] {
-// 		if len(v) == 1 {
-// 			allTasks = append(allTasks, v)
-// 		}
-// 	}
-// 	renderJSON(w, allTasks)
-// }
+func (ts *Service) delGroupHandler(writer http.ResponseWriter, request *http.Request) {
+	id := mux.Vars(request)["id"]
+	ver := mux.Vars(request)["ver"]
+	err := ts.store.DeleteGroup(id, ver)
+	if err != nil {
+		http.Error(writer, "Could not delete group", http.StatusBadRequest)
+	}
+}
 
-// func (ts *Service) getAllGroupsHandler(w http.ResponseWriter, req *http.Request) {
-// 	ver := mux.Vars(req)["ver"]
-// 	allTasks := [][]*Config{}
-// 	for _, v := range ts.versions[ver] {
-// 		if len(v) > 1 {
-// 			allTasks = append(allTasks, v)
-// 		}
-// 	}
-// 	renderJSON(w, allTasks)
-// }
+func (ts *Service) addConfigToGroupHandler(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	ver := mux.Vars(r)["ver"]
+	var configs []map[string]string
+	dec := json.NewDecoder(r.Body)
+	defer r.Body.Close()
 
-// func (ts *Service) getGroupHandler(w http.ResponseWriter, req *http.Request) {
-// 	id := mux.Vars(req)["id"]
-// 	ver := mux.Vars(req)["ver"]
-// 	task, ok := ts.versions[ver][id]
-// 	if !ok || len(task) == 1 {
-// 		err := errors.New("key not found")
-// 		http.Error(w, err.Error(), http.StatusNotFound)
-// 		return
-// 	}
-// 	renderJSON(w, task)
-// }
+	err := dec.Decode(&configs)
+	if err != nil {
+		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
+		return
+	}
 
-// func (ts *Service) putConfigHandler(w http.ResponseWriter, req *http.Request) {
-// 	id := mux.Vars(req)["id"]
-// 	ver := mux.Vars(req)["ver"]
-// 	task, ok := ts.versions[ver][id]
+	configs, err = ts.store.AddLabelsToGroup(configs, id, ver)
 
-// 	if !ok || len(task) == 1 {
-// 		err := errors.New("key not found")
-// 		http.Error(w, err.Error(), http.StatusNotFound)
-// 		return
-// 	}
+	if err != nil {
+		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
+		return
+	}
 
-// 	rt, err := decodeBody(req.Body)
-// 	if len(rt) > 1 {
-// 		err := errors.New("Recived invalid JSON format! (confg length > 1)")
-// 		http.Error(w, err.Error(), http.StatusBadRequest)
-// 		return
-// 	}
+	renderJSON(w, configs)
+}
 
-// 	if err == nil {
-// 		ts.versions[ver][id] = append(task, rt[0])
-// 	}
-// }
-
-// func (ts *Service) delConfigHandler(writer http.ResponseWriter, request *http.Request) {
-// 	id := mux.Vars(request)["id"]
-// 	ver := mux.Vars(request)["ver"]
-// 	if value, ok := ts.versions[ver][id]; ok && len(value) == 1 {
-// 		delete(ts.versions[ver], id)
-// 		renderJSON(writer, value)
-// 	} else {
-// 		err := errors.New("key not found")
-// 		http.Error(writer, err.Error(), http.StatusNotFound)
-// 	}
-// }
-
-// func (ts *Service) delGroupHandler(writer http.ResponseWriter, request *http.Request) {
-// 	id := mux.Vars(request)["id"]
-// 	ver := mux.Vars(request)["ver"]
-// 	if value, ok := ts.versions[ver][id]; ok && len(value) > 1 {
-// 		delete(ts.versions[ver], id)
-// 		renderJSON(writer, value)
-// 	} else {
-// 		err := errors.New("key not found")
-// 		http.Error(writer, err.Error(), http.StatusNotFound)
-// 	}
-// }
+func (ts *Service) delConfigHandler(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	ver := mux.Vars(r)["ver"]
+	_, err := ts.store.DeleteConfig(id, ver)
+	if err != nil {
+		http.Error(w, "Could not delete config", http.StatusBadRequest)
+	}
+}
