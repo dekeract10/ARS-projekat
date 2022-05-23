@@ -4,10 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/hashicorp/consul/api"
 	"log"
 	"os"
-
-	"github.com/hashicorp/consul/api"
 )
 
 type ConfigStore struct {
@@ -134,21 +133,43 @@ func (cs *ConfigStore) CreateGroup(group *Group) (*Group, error) {
 
 	log.Default().Println(sid, kv)
 
-	// data, err := json.Marshal(group)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	data, err := json.Marshal(group)
+	if err != nil {
+		return nil, err
+	}
 
-	// g := &api.KVPair{Key: sid, Value: data}
-	// _, err = kv.Put(g, nil)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	g := &api.KVPair{Key: sid, Value: data}
+	_, err = kv.Put(g, nil)
+	if err != nil {
+		return nil, err
+	}
 
+	cids := make([]string, 0)
 	for i, config := range group.Configs {
 		cid := constructGroupLabel(rid, group.Version, i, config)
+		cids = append(cids, cid)
 		log.Default().Println(cid)
+		cdata, err := json.Marshal(config)
+		if err != nil {
+			return nil, err
+		}
+
+		c := &api.KVPair{Key: cid, Value: cdata}
+		_, err = kv.Put(c, nil)
+		if err != nil {
+			return nil, err
+		}
 	}
+
+	for _, k := range cids {
+		val, _, err := kv.List(k, nil)
+		if err != nil {
+			return nil, err
+		}
+		log.Default().Println(val)
+	}
+
+	log.Default().Println(cs.FindConfVersions(sid))
 
 	return group, nil
 }
