@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	cs "github.com/dekeract10/ARS-projekat/configstore"
 	"github.com/google/uuid"
 	"io"
@@ -39,9 +38,7 @@ func renderJSON(w http.ResponseWriter, v interface{}, id string) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	//w.Write(js)
-	fmt.Println(js)
-	w.Write([]byte("Idempotence key: " + id))
+	w.Write(js)
 
 }
 
