@@ -56,7 +56,17 @@ func (cs *ConfigStore) DeleteConfig(id, ver string) (map[string]string, error) {
 		return nil, err
 	}
 
-	return map[string]string{"Deleted": id}, nil
+	return map[string]string{"Deleted config": id + ver}, nil
+}
+
+func (cs *ConfigStore) DeleteConfigGroup(id, ver string) (map[string]string, error) {
+	kv := cs.cli.KV()
+	_, err := kv.Delete(constructGroupKey(id, ver), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return map[string]string{"Deleted group": id + ver}, nil
 }
 
 func (cs *ConfigStore) FindConfVersions(id string) ([]*Config, error) {

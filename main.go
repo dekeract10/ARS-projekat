@@ -28,7 +28,7 @@ func main() {
 	server := Service{
 		store: store,
 	}
-
+  
 	router.HandleFunc("/config/", countPostConfig(server.createConfigHandler)).Methods("POST")
 	router.HandleFunc("/config/{id}/", countGetConfigVer(server.getConfigVersionsHandler)).Methods("GET")
 	router.HandleFunc("/config/{id}", countPostConfigVer(server.putNewVersion)).Methods("POST")
@@ -48,6 +48,7 @@ func main() {
 	router.HandleFunc("/group/{id}/{ver}/config/", countAddGroupConfig(server.addConfigToGroupHandler)).Methods("POST")
 	router.Path("/metrics").Handler(metricsHandler())
 	// router.HandleFunc("/group/{id}/configs/{ver}/", server.putConfigHandler).Methods("POST")
+
 
 	// start server
 	srv := &http.Server{Addr: "0.0.0.0:8000", Handler: router}
