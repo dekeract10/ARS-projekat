@@ -295,7 +295,9 @@ func (ts *Service) addConfigToGroupHandler(w http.ResponseWriter, r *http.Reques
 
 	reqId := ts.store.SaveRequestId()
 
-	renderJSON(w, configs, reqId)
+	w.Write([]byte("Idempotence key: " + reqId))
+
+	//renderJSON(w, configs, reqId)
 
 }
 
