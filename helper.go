@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	cs "github.com/dekeract10/ARS-projekat/configstore"
 	"github.com/google/uuid"
 	"io"
@@ -30,7 +31,7 @@ func decodeGroupBody(r io.Reader) (*cs.Group, error) {
 	return group, nil
 }
 
-func renderJSON(w http.ResponseWriter, v interface{}) {
+func renderJSON(w http.ResponseWriter, v interface{}, id string) {
 	js, err := json.Marshal(v)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -38,7 +39,10 @@ func renderJSON(w http.ResponseWriter, v interface{}) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(js)
+	//w.Write(js)
+	fmt.Println(js)
+	w.Write([]byte("Idempotence key: " + id))
+
 }
 
 func createId() string {
