@@ -1,21 +1,65 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
 	"mime"
 	"net/http"
 	"net/url"
 
 	cs "github.com/dekeract10/ARS-projekat/configstore"
+	tracer "github.com/dekeract10/ARS-projekat/tracer"
 	"github.com/gorilla/mux"
+	"github.com/opentracing/opentracing-go"
 )
 
 type Service struct {
-	store *cs.ConfigStore
+	store  *cs.ConfigStore
+	tracer opentracing.Tracer
+	closer io.Closer
+}
+
+const (
+	name = "configstore"
+)
+
+func NewConfigServer() (*Service, error) {
+	store, err := cs.New()
+	if err != nil {
+		return nil, err
+	}
+
+	tracer, closer := tracer.Init(name)
+	opentracing.SetGlobalTracer(tracer)
+	return &Service{
+		store:  store,
+		tracer: tracer,
+		closer: closer,
+	}, nil
+}
+
+func (s *Service) GetTracer() opentracing.Tracer {
+	return s.tracer
+}
+
+func (s *Service) GetCloser() io.Closer {
+	return s.closer
+}
+
+func (s *Service) CloseTracer() error {
+	return s.closer.Close()
 }
 
 func (ts *Service) createConfigHandler(w http.ResponseWriter, req *http.Request) {
+	span := tracer.StartSpanFromRequest("createConfigHandler", ts.tracer, req)
+	defer span.Finish()
+
+	span.LogFields(
+		tracer.LogString("handler", fmt.Sprintf("handling config create at %s\n", req.URL.Path)),
+	)
 
 	contentType := req.Header.Get("Content-Type")
 	requestId := req.Header.Get("x-idempotency-key")
@@ -32,16 +76,16 @@ func (ts *Service) createConfigHandler(w http.ResponseWriter, req *http.Request)
 		return
 	}
 
-	rt, err := decodeConfigBody(req.Body)
+	ctx := tracer.ContextWithSpan(context.Background(), span)
+
+	rt, err := decodeConfigBody(ctx, req.Body)
 	if err != nil || rt.Version == "" || rt.Entries == nil {
 		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
 		return
 	}
 
 	if ts.store.FindRequestId(requestId) == true {
-
 		http.Error(w, "Request has been already sent", http.StatusBadRequest)
-
 		return
 	}
 
@@ -50,7 +94,6 @@ func (ts *Service) createConfigHandler(w http.ResponseWriter, req *http.Request)
 	reqId := ""
 
 	if err == nil {
-
 		reqId = ts.store.SaveRequestId()
 	}
 	w.Write([]byte(config.ID))
@@ -58,6 +101,12 @@ func (ts *Service) createConfigHandler(w http.ResponseWriter, req *http.Request)
 }
 
 func (ts *Service) putNewVersion(w http.ResponseWriter, req *http.Request) {
+	span := tracer.StartSpanFromRequest("putNewVersion", ts.tracer, req)
+	defer span.Finish()
+
+	span.LogFields(
+		tracer.LogString("handler", fmt.Sprintf("Handling create new config version at %s\n", req.URL.Path)),
+	)
 
 	contentType := req.Header.Get("Content-Type")
 	requestId := req.Header.Get("x-idempotency-key")
@@ -76,7 +125,9 @@ func (ts *Service) putNewVersion(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	rt, err := decodeConfigBody(req.Body)
+	ctx := tracer.ContextWithSpan(context.Background(), span)
+
+	rt, err := decodeConfigBody(ctx, req.Body)
 	if err != nil {
 		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
 		return

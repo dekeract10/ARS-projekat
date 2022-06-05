@@ -1,19 +1,26 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
-	cs "github.com/dekeract10/ARS-projekat/configstore"
-	"github.com/google/uuid"
 	"io"
 	"net/http"
+
+	cs "github.com/dekeract10/ARS-projekat/configstore"
+	tracer "github.com/dekeract10/ARS-projekat/tracer"
+	"github.com/google/uuid"
 )
 
-func decodeConfigBody(r io.Reader) (*cs.Config, error) {
+func decodeConfigBody(ctx context.Context, r io.Reader) (*cs.Config, error) {
+	span := tracer.StartSpanFromContext(ctx, "decodeConfigBody")
+	defer span.Finish()
+
 	dec := json.NewDecoder(r)
 	dec.DisallowUnknownFields()
 
 	var config *cs.Config
 	if err := dec.Decode(&config); err != nil {
+		tracer.LogError(span, err)
 		return nil, err
 	}
 	return config, nil
