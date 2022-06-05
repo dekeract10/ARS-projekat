@@ -1,7 +1,9 @@
 package configstore
 
 import (
+	"context"
 	"fmt"
+	tracer "github.com/dekeract10/ARS-projekat/tracer"
 	"sort"
 
 	"github.com/google/uuid"
@@ -21,33 +23,54 @@ const (
 	requestId = "request/%s"
 )
 
-func generateConfigKey(ver string) (string, string) {
+func generateConfigKey(ctx context.Context, ver string) (string, string) {
+	span := tracer.StartSpanFromContext(ctx, "generateConfigKey")
+	defer span.Finish()
+
 	id := uuid.New().String()
 	return fmt.Sprintf(config, id, ver), id
 }
 
-func constructConfigKey(id string, ver string) string {
+func constructConfigKey(ctx context.Context, id string, ver string) string {
+	span := tracer.StartSpanFromContext(ctx, "constructConfigKey")
+	defer span.Finish()
+
 	return fmt.Sprintf(config, id, ver)
 }
 
-func constructConfigIdKey(id string) string {
+func constructConfigIdKey(ctx context.Context, id string) string {
+	span := tracer.StartSpanFromContext(ctx, "constructConfigIdKey")
+	defer span.Finish()
+
 	return fmt.Sprintf(configId, id)
 }
 
-func generateGroupKey(ver string) (string, string) {
+func generateGroupKey(ctx context.Context, ver string) (string, string) {
+	span := tracer.StartSpanFromContext(ctx, "generateGroupKey")
+	defer span.Finish()
+
 	id := uuid.New().String()
 	return fmt.Sprintf(groupVer, id, ver), id
 }
 
-func constructGroupKey(id string, ver string) string {
+func constructGroupKey(ctx context.Context, id string, ver string) string {
+	span := tracer.StartSpanFromContext(ctx, "constructGroupKey")
+	defer span.Finish()
+
 	return fmt.Sprintf(groupVer, id, ver)
 }
 
-func constructGroupIdKey(id string) string {
+func constructGroupIdKey(ctx context.Context, id string) string {
+	span := tracer.StartSpanFromContext(ctx, "constructGroupIdKey")
+	defer span.Finish()
+
 	return fmt.Sprintf(groupId, id)
 }
 
-func constructGroupLabel(id, ver, index string, config map[string]string) string {
+func constructGroupLabel(ctx context.Context, id, ver, index string, config map[string]string) string {
+	span := tracer.StartSpanFromContext(ctx, "constructGroupLabel")
+	defer span.Finish()
+
 	keys := make([]string, 0, len(config))
 	for k := range config {
 		keys = append(keys, k)
@@ -57,16 +80,16 @@ func constructGroupLabel(id, ver, index string, config map[string]string) string
 
 	var kvpairs string
 	for k := range keys {
-
 		kvpairs = kvpairs + fmt.Sprintf("%s=%s", keys[k], config[keys[k]]+"&")
 	}
 	kvpairs = kvpairs[:len(kvpairs)-1]
 	return fmt.Sprintf(groupWithLabel, id, ver, kvpairs, index)
 }
 
-func generateRequestId() string {
+func generateRequestId(ctx context.Context) string {
+	span := tracer.StartSpanFromContext(ctx, "generateRequestId")
+	defer span.Finish()
 
 	rid := uuid.New().String()
-
 	return rid
 }
